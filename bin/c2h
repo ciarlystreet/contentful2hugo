@@ -15,7 +15,7 @@ Choice.options do
     short '-c'
     long '--conf pad/to/configfile'
     desc 'Location of your configfile'
-    desc '(default config.yaml)'
+    desc '(default contentful.yaml)'
     default 'contentful.yaml'
   end
 
@@ -34,7 +34,7 @@ Choice.options do
     long '--version'
     desc 'Show version'
     action do
-      puts "c2h Contentful to Hugo v#{PROGRAM_VERSION}"
+      puts "c2h Contentful 2 Hugo v#{PROGRAM_VERSION}"
       exit
     end
   end
