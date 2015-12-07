@@ -1,4 +1,5 @@
 #Contentful 2 Hugo
+
 A tool to create content-files for [hugo](https://gohugo.io) from content on [contentful](https://www.contentful.com).
 
 ## Installation
