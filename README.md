@@ -24,7 +24,7 @@ Usage: c2h [-cv]
 
 An example config file:
 
-```
+```YAML
 ---
 access_token: yourownpersonalaccesstokenfromcontentfulhere # Contentful token  (required)
 content_dir: content  # Content dir of hugo (required)
