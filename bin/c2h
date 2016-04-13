@@ -6,6 +6,7 @@ require 'choice'
 require 'open-uri'
 require 'fileutils'
 require 'time'
+require 'erb'
 
 PROGRAM_VERSION = '0.0.1'
 
@@ -42,7 +43,7 @@ end
 
 begin
   #Load config file
-  config = YAML.load_file(Choice.choices.configfile)
+  config = YAML.load(ERB.new(File.read(Choice.choices.configfile)).result)
 
   # Check if the content_dir is set in configfile
   raise "content_dir not set in config file" if config['content_dir']== '' || config['content_dir'] == nil
