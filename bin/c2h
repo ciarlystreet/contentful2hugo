@@ -197,11 +197,13 @@ begin
       end
     rescue => e
       puts (Choice.choices.verbose ? "  #{e.message}": "#{e.message}")
+      puts e.backtrace if Choice.choices.verbose
       exit 1
     end
   end
 rescue => e
   puts e.message
+  puts e.backtrace if Choice.choices.verbose
   exit 1
 end
 exit 0
