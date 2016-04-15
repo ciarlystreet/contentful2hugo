@@ -116,7 +116,7 @@ begin
         # Path to content-file
         fullpath = "#{section_content_dir}/#{filename}.md"
 
-        if File.new(fullpath).mtime > Time.parse(entry.sys[:updatedAt].to_s)
+        if File.file?(fullpath) && File.new(fullpath).mtime > Time.parse(entry.sys[:updatedAt].to_s)
           puts "  #{fullpath}: UpToDate -> skip" if Choice.choices.verbose
         else
 
