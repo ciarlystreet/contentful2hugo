@@ -197,8 +197,11 @@ begin
       end
     rescue => e
       puts (Choice.choices.verbose ? "  #{e.message}": "#{e.message}")
+      exit 1
     end
   end
 rescue => e
   puts e.message
+  exit 1
 end
+exit 0
