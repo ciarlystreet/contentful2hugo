@@ -32,9 +32,10 @@ download_images: false # Images in the content get downloaded (optional, default
 image_dir: static/images  # Image dir of hugo (required if download_images == true)
 spaces:               # List of spaces you want to import
   abc123xyz456:       # Space key of contentful
-    section: page	# Section in hugo you want to map to (required)
-    content: content  # Field you want to map as content in hugo (optional)
-    filename: slug    # Field you want to use as filename (optional)
+    page: # Contentful content type
+      section: page	# Section in hugo you want to map to (required)
+      content: content  # Field you want to map as content in hugo (optional)
+      filename: slug    # Field you want to use as filename (optional)
 ---
 ```
 Notice: all paths are relative to the config file.
