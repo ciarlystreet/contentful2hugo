@@ -98,7 +98,17 @@ begin
           fields = {}
           filename = ''
 
-          # Process fields
+          def process_field(entry, mapping)
+            if mapping.include?('.')
+              # access nested data
+              sub_field, *rest = mapping.split('.')
+              process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'))
+            else
+              entry.fields.fetch(mapping.to_sym)
+            end
+          end
+
+          # Process field in the entry.
           entry.fields.each do |key, value|
             key = key[0,key.length] #remove ':' before keys
             if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
@@ -107,7 +117,7 @@ begin
             if key == content_type_config['content']
               content = value
             else
-              fields[key] = value
+              fields[key] = process_field(entry, content_type_config.fetch(key, key))
             end
           end
 

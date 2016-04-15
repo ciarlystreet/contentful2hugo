@@ -36,6 +36,7 @@ spaces:               # List of spaces you want to import
       section: page	# Section in hugo you want to map to (required)
       content: content  # Field you want to map as content in hugo (optional)
       filename: slug    # Field you want to use as filename (optional)
+      author: author.name # access fields in nested entries
 ---
 ```
 Notice: all paths are relative to the config file.
