@@ -102,7 +102,7 @@ begin
         puts "Running query:\n  #{query.inspect}" if Choice.choices.debug
         entries = client.entries(query)
         entries.each do |entry|
-          puts "  #{entry.fields.inspect}" if Choice.choices.verbose
+          puts "  #{entry.fields.inspect}" if Choice.choices.debug
 
           # Reset variables
           content = ''
