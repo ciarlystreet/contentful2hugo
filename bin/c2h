@@ -44,7 +44,7 @@ end
 begin
   #Load config file
   config = YAML.load(ERB.new(File.read(Choice.choices.configfile)).result)
-  puts "Config:\n#{config.inspect}" if Choice.choices.verbose
+  puts "Config:\n  #{config.inspect}" if Choice.choices.verbose
 
   # Check if the content_dir is set in configfile
   raise "content_dir not set in config file" if config['content_dir']== '' || config['content_dir'] == nil
@@ -78,7 +78,7 @@ begin
       access_token: config['access_token'],
       space: space_key,
     }
-    puts "Client config: #{client_config.inspect}" if Choice.choices.verbose
+    puts "Client config:\n  #{client_config.inspect}" if Choice.choices.verbose
     client = Contentful::Client.new(client_config)
     begin
       content_types.each do |content_type, content_type_config|
@@ -93,7 +93,7 @@ begin
 
         # Process entries
         query = {content_type: content_type}
-        puts "Running query: #{query.inspect}" if Choice.choices.verbose
+        puts "Running query:\n  #{query.inspect}" if Choice.choices.verbose
         entries = client.entries(query)
         entries.each do |entry|
           puts "  #{entry.fields.inspect}" if Choice.choices.verbose
