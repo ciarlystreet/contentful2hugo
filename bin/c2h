@@ -114,6 +114,10 @@ begin
               # access nested data
               sub_field, *rest = mapping.split('.')
               process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'))
+            elsif entry.kind_of?(Array)
+              entry.map { |elt|
+                elt.fields.fetch(mapping.to_sym)
+              }
             else
               entry.fields.fetch(mapping.to_sym)
             end
