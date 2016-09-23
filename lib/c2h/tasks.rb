@@ -5,7 +5,7 @@ namespace :contentful do
   task :default => :download_content
 
   begin
-    require 'dotenv/task'
+    require 'dotenv/tasks'
   rescue LoadError
     desc "Dotenv stub if it isn't installed"
     task :dotenv
