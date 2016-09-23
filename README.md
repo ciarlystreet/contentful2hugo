@@ -20,6 +20,21 @@ Usage: c2h [-cv]
         --version                    Show version
 ```
 
+## Rake tasks
+
+Some Rake tasks are provided:
+
+```rake
+# In your Rakefile:
+
+require 'c2h/tasks'
+```
+
+```sh
+rake contentful:download_content
+rake contentful:clean_content
+```
+
 ## Config file
 
 An example config file:

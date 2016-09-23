@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "choice", ["= 0.2.0"]
 
   s.add_development_dependency "bundler", "~> 1.12.0"
-  s.add_development_dependency "rake", "~> 11.2.0"
+  s.add_development_dependency "rake", ">= 10.0"
   s.add_development_dependency "minitest", "~> 5.9.0"
 end
