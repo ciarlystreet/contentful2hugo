@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
   s.license     = 'Apache License 2.0'
 
   s.files       = `git ls-files`.split($/)
-  s.bindir      = 'bin'
-  s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  s.bindir      = 'exe'
+  s.executables = s.files.grep(%r{^exe/}) { |f| File.basename(f) }
   s.test_files  = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
