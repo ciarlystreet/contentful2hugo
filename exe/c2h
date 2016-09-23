@@ -9,8 +9,8 @@ Choice.options do
     short '-c'
     long '--conf pad/to/configfile'
     desc 'Location of your configfile'
-    desc '(default contentful.yaml)'
-    default 'contentful.yaml'
+    desc '(default contentful.yml)'
+    default 'contentful.yml'
   end
 
   option :help do
@@ -29,7 +29,7 @@ Choice.options do
     desc 'Show version'
     action do
       puts "c2h Contentful 2 Hugo v#{C2H::VERSION}"
-      exit
+      exit 0
     end
   end
 
