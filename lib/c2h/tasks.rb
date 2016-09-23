@@ -4,15 +4,16 @@ namespace :contentful do
 
   task :default => :download_content
 
-  begin
-    require 'dotenv/tasks'
-  rescue LoadError
-    desc "Dotenv stub if it isn't installed"
-    task :dotenv
-  end
 
   desc "Default: Download content from Contentful"
-  task :download_content => [:dotenv, :clean_content] do
+  task :download_content => [:clean_content] do
+    if File.exist?(".env")
+      begin
+        require 'dotenv'
+        Dotenv.load
+      rescue LoadError
+      end
+    end
     sh "bundle exec c2h --conf contentful.yml --verbose --debug"
   end
 
