@@ -5,7 +5,7 @@ namespace :contentful do
   task :default => :download_content
 
 
-  desc "Default: Download content from Contentful"
+  desc "Default: Download content from Contentful using contentful.yml"
   task :download_content => [:clean_content] do
     if File.exist?(".env")
       begin
@@ -14,7 +14,17 @@ namespace :contentful do
       rescue LoadError
       end
     end
-    sh "bundle exec c2h --conf contentful.yml --verbose --debug"
+
+    require 'ostruct'
+    require 'c2h/mapper'
+
+    options = OpenStruct.new
+    options.debug = true
+    options.verbose = true
+    options.configfile = "contentful.yml"
+
+    mapper = C2H::Mapper.new(options)
+    mapper.run
   end
 
 
