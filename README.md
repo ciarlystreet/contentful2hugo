@@ -9,12 +9,12 @@ gem install c2h
 
 ## Usage
 
-Place your config file in the root directory of your hugo site, name it contentful.yaml and run ***c2h -v***.
+Place your config file in the root directory of your hugo site, name it contentful.yml and run ***c2h -v***.
 
 ```
 Usage: c2h [-cv]
-    -c, --conf pad/to/configfile.yaml     Location of your configfile
-                                     (default contentful.yaml)
+    -c, --conf pad/to/configfile.yml     Location of your configfile
+                                     (default contentful.yml)
         --help                       Show this message
     -v, --verbose                    Give more output
         --version                    Show version
