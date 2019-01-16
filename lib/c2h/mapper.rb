@@ -93,7 +93,7 @@ module C2H
               end
 
               # Process field in the entry.
-              entry.fields(locale)[.each do |key, value|
+              entry.fields(locale).each do |key, value|
                 key = key[0,key.length] #remove ':' before keys
                 if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
                   filename = value
