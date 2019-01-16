@@ -69,6 +69,7 @@ module C2H
             query = {content_type: content_type, locale: '*'}
             puts "Running query:\n  #{query.inspect}" if options.debug
             entries = client.entries(query)
+            config['locales'].split(',').each do |locale|
             entries.each do |entry|
               puts "  #{entry.fields.inspect}" if options.debug
 
@@ -92,7 +93,7 @@ module C2H
               end
 
               # Process field in the entry.
-              entry.fields.each do |key, value|
+              entry.fields(locale)[.each do |key, value|
                 key = key[0,key.length] #remove ':' before keys
                 if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
                   filename = value
@@ -105,7 +106,8 @@ module C2H
               end
 
               # If no filename field is found, the entry id is used
-              filename = entry.id if filename == ''
+             
+                filename = "#{entry.id}.#{locale}" if filename == ''
 
               # Path to content-file
               fullpath = "#{section_content_dir}/#{filename}.md"
@@ -190,6 +192,7 @@ module C2H
                 end
               end
             end
+          end
           end
         rescue StandardError
           raise
