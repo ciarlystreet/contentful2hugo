@@ -31,6 +31,6 @@ namespace :contentful do
   desc "Clean contentful content"
   task :clean_content do
     puts "WARNING: This will remove all unversioned content files!!!"
-    sh "git clean -f content"
+    sh "git clean -df content"
   end
 end

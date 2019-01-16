@@ -66,7 +66,7 @@ module C2H
             section_content_dir = "#{content_dir}/#{content_type_config['section']}"
 
             # Process entries
-            query = {content_type: content_type}
+            query = {content_type: content_type, locale: '*'}
             puts "Running query:\n  #{query.inspect}" if options.debug
             entries = client.entries(query)
             entries.each do |entry|
