@@ -12,6 +12,7 @@ module C2H
     attr_accessor :options
 
     def initialize(options)
+      options.debug = false
       @options = options
     end
 
@@ -65,175 +66,141 @@ module C2H
             #section content directory Location
             section_content_dir = "#{content_dir}/#{content_type_config['section']}"
 
-            # Process entries
-            query = {content_type: content_type, locale: '*'}
-            puts "Running query:\n  #{query.inspect}" if options.debug
-            entries = client.entries(query)
+              # Process all languages
             config['locales'].split(',').each do |locale|
-            entries.each do |entry|
-              #puts "  #{entry.fields.inspect}" if options.debug
-              puts "#{locale}" if options.debug
-              if locale == config['DefaultContentLanguage'] || entry.fields(locale).nil?
-                puts "************************** #{locale}  #{entry.fields.inspect}" if options.debug
-              else
-                puts "************************** #{locale}  #{entry.fields(locale).inspect}" if options.debug
-              end
+              puts "############  #{locale}"
+              # Process entries
+              query = {content_type: content_type, locale: "#{locale}"}
+              puts "Running query:\n  #{query.inspect}" if options.debug
+              entries = client.entries(query)
+              puts "entries  #{entries}" if options.debug
+              entries.each do |entry|
+                puts "  #{entry.fields.inspect}" if options.debug
 
-              # Reset variables
-              content = ''
-              fields = {}
-              filename = ''
+                # Reset variables
+                content = ''
+                fields = {}
+                filename = ''
 
-              def process_field(entry, mapping, locale, config)
-                if mapping.include?('.')
-                  # access nested data
-                  sub_field, *rest = mapping.split('.')
-                  process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'), locale, config)
-                  #puts "------------------- 1"
-                elsif entry.kind_of?(Array)
-                  #puts "------------------- 2 #{locale} #{config['DefaultContentLanguage']}"
-                  entry.map { |elt|
-                    elt.fields.fetch(mapping.to_sym)
-                    #puts "------------------- 2 #{elt.fields.fetch(mapping.to_sym)}"
-                  }
-                else
-                  #puts "------------------- 3 #{locale} #{config['DefaultContentLanguage']}"
-                  if locale == config['DefaultContentLanguage']  || entry.fields(locale).nil?
-                    entry.fields.fetch(mapping.to_sym)
-                    #puts "------------------- 3 #{entry.fields.fetch(mapping.to_sym)}"
+                def process_field(entry, mapping)
+                  if mapping.include?('.')
+                    # access nested data
+                    sub_field, *rest = mapping.split('.')
+                    process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'))
+                  elsif entry.kind_of?(Array)
+                    entry.map { |elt|
+                      elt.fields.fetch(mapping.to_sym)
+                    }
                   else
-                    entry.fields(locale).fetch(mapping.to_sym)
-                    #puts "------------------- 3 #{entry.fields(locale).fetch(mapping.to_sym)}"
+                    entry.fields.fetch(mapping.to_sym)
                   end
                 end
-              end
 
-              # Process field in the entry.
-              if locale == config['DefaultContentLanguage'] || entry.fields(locale).nil?
-                #puts "##################### #{locale} #{entry.fields}"
+                # Process field in the entry.
                 entry.fields.each do |key, value|
                   key = key[0,key.length] #remove ':' before keys
-                  #puts "##################### #{locale} #{key}"
                   if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
                     filename = value
                   end
                   if key == content_type_config['content']
                     content = value
                   else
-                    fields[key] = process_field(entry, content_type_config.fetch(key, key),locale,config)
+                    fields[key] = process_field(entry, content_type_config.fetch(key, key))
                   end
                 end
-              else
-                #puts "##################### #{locale} #{entry.fields(locale)}"
-                entry.fields(locale).each do |key, value|
-                  key = key[0,key.length] #remove ':' before keys
-                  #puts "##################### #{locale} #{key}"
-                  if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
-                    filename = value
-                  end
-                  if key == content_type_config['content']
-                    content = value
-                  else
-                    fields[key] = process_field(entry, content_type_config.fetch(key, key),locale,config)
-                    #puts "##################### field  #{key} #{fields[key]} "
-                  end
+
+                # If no filename field is found, the entry id is used
+                if filename == ''
+                  filename = "#{entry.id}.#{locale}" 
+                else
+                  filename = "#{filename}.#{locale}"
                 end
-              end
-              #puts "##################### fields  #{locale} #{fields} "
 
-              # If no filename field is found, the entry id is used
-              if filename == '' && entry.fields[content_type_config['filename'].to_sym] != nil
-                filename = "#{entry.fields[content_type_config['filename'].to_sym]}.#{locale}" 
-              elsif filename == ''
-                filename = "#{entry.id}.#{locale}" 
-              else
-                filename = "#{filename}.#{locale}"
-              end
+                # Path to content-file
+                fullpath = "#{section_content_dir}/#{filename}.md"
+                puts "################## filename #{filename}"
 
-              # Path to content-file
-              fullpath = "#{section_content_dir}/#{filename}.md"
+                if File.file?(fullpath) && File.new(fullpath).mtime > Time.parse(entry.sys[:updatedAt].to_s)
+                  puts "  #{fullpath}: UpToDate -> skip" if options.verbose
+                else
 
-              if File.file?(fullpath) && File.new(fullpath).mtime > Time.parse(entry.sys[:updatedAt].to_s)
-                puts "  #{fullpath}: UpToDate -> skip" if options.verbose
-              else
+                  if config['download_images'] == 'true' || config['download_images'] == true
+                    # Section image directory location
+                    section_image_dir = "#{image_dir}/#{content_type_config['section']}"
 
-                if config['download_images'] == 'true' || config['download_images'] == true
-                  # Section image directory location
-                  section_image_dir = "#{image_dir}/#{content_type_config['section']}"
+                    # Entry image directory location
+                    entry_image_dir = "#{section_image_dir}/#{filename}"
 
-                  # Entry image directory location
-                  entry_image_dir = "#{section_image_dir}/#{filename}"
+                    # Get images from content
+                    content.scan(/!\[[^\]]*\]\(([A-Za-z0-9_\/\.\-]*\/)([A-Za-z0-9_\.\-]+)\)/).each do |url, name|
 
-                  # Get images from content
-                  content.scan(/!\[[^\]]*\]\(([A-Za-z0-9_\/\.\-]*\/)([A-Za-z0-9_\.\-]+)\)/).each do |url, name|
+                      puts "    #{entry_image_dir}/#{name}" if options.verbose
 
-                    puts "    #{entry_image_dir}/#{name}" if options.verbose
-
-                    # Create sub directory for section if it doesn't exist
-                    if !File.directory?(section_image_dir)
-                      Dir.mkdir(section_image_dir)
-                    end
-
-                    # Create sub directory for entry if it doesn't exist
-                    if !File.directory?(entry_image_dir)
-                      Dir.mkdir(entry_image_dir)
-                    end
-
-                    full_url = "http:#{url}#{name}"
-                    full_path = "#{entry_image_dir}/#{name}"
-
-                    # Image isn't downloaded yet
-                    if downloaded_images[full_url] == nil
-                      begin
-                        # Download image & write to file
-                        File.write(full_path, open(full_url).read)
-                        if downloaded_images[full_url] == nil
-                          downloaded_images[full_url] = {}
-                        end
-                        downloaded_images[full_url][full_path] = true;
-                      rescue => e
-                        puts (options.verbose ? "      #{e.message}": "#{e.message}")
-
-                        downloaded_images[full_url][full_path] = false;
+                      # Create sub directory for section if it doesn't exist
+                      if !File.directory?(section_image_dir)
+                        Dir.mkdir(section_image_dir)
                       end
-                    else
-                      # The image was downloaded but to an other location
-                      if downloaded_images[full_url][full_path] == nil
-                        # Search already downloaded copy
-                        prev_full_url = nil
-                        downloaded_images[full_url].each do |u|
-                          prev_full_url = u
-                          next
-                        end
+
+                      # Create sub directory for entry if it doesn't exist
+                      if !File.directory?(entry_image_dir)
+                        Dir.mkdir(entry_image_dir)
+                      end
+
+                      full_url = "http:#{url}#{name}"
+                      full_path = "#{entry_image_dir}/#{name}"
+
+                      # Image isn't downloaded yet
+                      if downloaded_images[full_url] == nil
                         begin
-                          # Copy prev downloaded copy
-                          FileUtils.cp(prev_full_url, full_url);
+                          # Download image & write to file
+                          File.write(full_path, open(full_url).read)
+                          if downloaded_images[full_url] == nil
+                            downloaded_images[full_url] = {}
+                          end
                           downloaded_images[full_url][full_path] = true;
                         rescue => e
                           puts (options.verbose ? "      #{e.message}": "#{e.message}")
+
                           downloaded_images[full_url][full_path] = false;
                         end
+                      else
+                        # The image was downloaded but to an other location
+                        if downloaded_images[full_url][full_path] == nil
+                          # Search already downloaded copy
+                          prev_full_url = nil
+                          downloaded_images[full_url].each do |u|
+                            prev_full_url = u
+                            next
+                          end
+                          begin
+                            # Copy prev downloaded copy
+                            FileUtils.cp(prev_full_url, full_url);
+                            downloaded_images[full_url][full_path] = true;
+                          rescue => e
+                            puts (options.verbose ? "      #{e.message}": "#{e.message}")
+                            downloaded_images[full_url][full_path] = false;
+                          end
+                        end
                       end
+                      # Replace URL in content, remove static dir if present
+                      content = content.sub("#{url}#{name}", full_path.sub(/.*static/,''))
                     end
-                    # Replace URL in content, remove static dir if present
-                    content = content.sub("#{url}#{name}", full_path.sub(/.*static/,''))
                   end
-                end
 
-                # Create sub directory for section if it doesn't exist
-                if !File.directory?(section_content_dir)
-                  Dir.mkdir(section_content_dir)
-                end
+                  # Create sub directory for section if it doesn't exist
+                  if !File.directory?(section_content_dir)
+                    Dir.mkdir(section_content_dir)
+                  end
 
-                # Write file
-                File.open(fullpath, 'w') do |file|
-                  file.write(fields.to_yaml)
-                  file.write("---\n")
-                  file.write(content)
+                  # Write file
+                  File.open(fullpath, 'w') do |file|
+                    file.write(fields.to_yaml)
+                    file.write("---\n")
+                    file.write(content)
+                  end
                 end
               end
             end
-          end
           end
         rescue StandardError
           raise
