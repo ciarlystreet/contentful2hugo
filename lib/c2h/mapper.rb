@@ -117,7 +117,7 @@ module C2H
                 end
 
                 # Path to content-file
-                if entry.fields.fetch(:isHome) != nil && entry.fields.fetch(:isHome) == true
+                if entry.fields.key?(:isHome) && entry.fields.fetch(:isHome) != nil && entry.fields.fetch(:isHome) == true
                   if locale == config['default_locale']
                     fullpath = "#{File.dirname(options.configfile)}/#{config.fetch('content_dir', 'content')}/_index.md"
                   else
