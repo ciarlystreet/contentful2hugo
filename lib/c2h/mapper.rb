@@ -109,14 +109,15 @@ module C2H
                 end
 
                 # If no filename field is found, the entry id is used
+                  puts "################ #{content_type_config['section']}/#{filename}"
                 if filename == ''
                   filename = "#{entry.id}.#{locale}" 
                 else
-                  filename = "#{filename}.#{locale}"
+                  filename = "#{content_type_config['section']}/#{filename}.#{locale}"
                 end
 
                 # Path to content-file
-                if entry.fields.fetch(:isHome) != nil
+                if entry.fields.fetch(:isHome) != nil && entry.fields.fetch(:isHome) == true
                   if locale == config['default_locale']
                     fullpath = "#{File.dirname(options.configfile)}/#{config.fetch('content_dir', 'content')}/_index.md"
                   else
