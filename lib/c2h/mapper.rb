@@ -107,9 +107,11 @@ module C2H
                     fields[key] = process_field(entry, content_type_config.fetch(key, key))
                   end
                 end
+                
+                # Add translation key
+                fields['translationKey'] = fields.fetch(content_type_config['filename'])
 
                 # If no filename field is found, the entry id is used
-                  puts "################ #{content_type_config['section']}/#{filename}"
                 if filename == ''
                   filename = "#{entry.id}.#{locale}" 
                 else
