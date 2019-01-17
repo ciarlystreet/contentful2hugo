@@ -12,7 +12,6 @@ module C2H
     attr_accessor :options
 
     def initialize(options)
-      options.debug = false
       @options = options
     end
 
@@ -68,9 +67,9 @@ module C2H
 
               # Process all languages
             config['locales'].split(',').each do |locale|
-              puts "############  #{locale}"
               # Process entries
               query = {content_type: content_type, locale: "#{locale}"}
+              puts "Locale #{locale}"
               puts "Running query:\n  #{query.inspect}" if options.debug
               entries = client.entries(query)
               puts "entries  #{entries}" if options.debug
@@ -117,8 +116,15 @@ module C2H
                 end
 
                 # Path to content-file
-                fullpath = "#{section_content_dir}/#{filename}.md"
-                puts "################## filename #{filename}"
+                if entry.fields.fetch(:isHome) != nil
+                  if locale == config['default_locale']
+                    fullpath = "#{File.dirname(options.configfile)}/#{config.fetch('content_dir', 'content')}/_index.md"
+                  else
+                    fullpath = "#{File.dirname(options.configfile)}/#{config.fetch('content_dir', 'content')}/_index.#{locale}.md"
+                  end
+                else
+                  fullpath = "#{content_dir}/#{filename}.md"
+                end
 
                 if File.file?(fullpath) && File.new(fullpath).mtime > Time.parse(entry.sys[:updatedAt].to_s)
                   puts "  #{fullpath}: UpToDate -> skip" if options.verbose

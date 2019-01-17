@@ -45,6 +45,8 @@ access_token: yourownpersonalaccesstokenfromcontentfulhere # Contentful token  (
 content_dir: content  # Content dir of hugo (required)
 download_images: false # Images in the content get downloaded (optional, default = false)
 image_dir: static/images  # Image dir of hugo (required if download_images == true)
+locales: en-US, it # All Contenful locales
+default_locale: en-US # Deafault Contentful Locale
 spaces:               # List of spaces you want to import
   abc123xyz456:       # Space key of contentful
     page: # Contentful content type
