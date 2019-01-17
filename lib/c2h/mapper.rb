@@ -71,43 +71,84 @@ module C2H
             entries = client.entries(query)
             config['locales'].split(',').each do |locale|
             entries.each do |entry|
-              puts "  #{entry.fields.inspect}" if options.debug
+              #puts "  #{entry.fields.inspect}" if options.debug
+              puts "#{locale}" if options.debug
+              if locale == config['DefaultContentLanguage'] || entry.fields(locale).nil?
+                puts "************************** #{locale}  #{entry.fields.inspect}" if options.debug
+              else
+                puts "************************** #{locale}  #{entry.fields(locale).inspect}" if options.debug
+              end
 
               # Reset variables
               content = ''
               fields = {}
               filename = ''
 
-              def process_field(entry, mapping)
+              def process_field(entry, mapping, locale, config)
                 if mapping.include?('.')
                   # access nested data
                   sub_field, *rest = mapping.split('.')
-                  process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'))
+                  process_field(entry.fields.fetch(sub_field.to_sym), rest.join('.'), locale, config)
+                  #puts "------------------- 1"
                 elsif entry.kind_of?(Array)
+                  #puts "------------------- 2 #{locale} #{config['DefaultContentLanguage']}"
                   entry.map { |elt|
                     elt.fields.fetch(mapping.to_sym)
+                    #puts "------------------- 2 #{elt.fields.fetch(mapping.to_sym)}"
                   }
                 else
-                  entry.fields.fetch(mapping.to_sym)
+                  #puts "------------------- 3 #{locale} #{config['DefaultContentLanguage']}"
+                  if locale == config['DefaultContentLanguage']  || entry.fields(locale).nil?
+                    entry.fields.fetch(mapping.to_sym)
+                    #puts "------------------- 3 #{entry.fields.fetch(mapping.to_sym)}"
+                  else
+                    entry.fields(locale).fetch(mapping.to_sym)
+                    #puts "------------------- 3 #{entry.fields(locale).fetch(mapping.to_sym)}"
+                  end
                 end
               end
 
               # Process field in the entry.
-              entry.fields(locale).each do |key, value|
-                key = key[0,key.length] #remove ':' before keys
-                if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
-                  filename = value
+              if locale == config['DefaultContentLanguage'] || entry.fields(locale).nil?
+                #puts "##################### #{locale} #{entry.fields}"
+                entry.fields.each do |key, value|
+                  key = key[0,key.length] #remove ':' before keys
+                  #puts "##################### #{locale} #{key}"
+                  if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
+                    filename = value
+                  end
+                  if key == content_type_config['content']
+                    content = value
+                  else
+                    fields[key] = process_field(entry, content_type_config.fetch(key, key),locale,config)
+                  end
                 end
-                if key == content_type_config['content']
-                  content = value
-                else
-                  fields[key] = process_field(entry, content_type_config.fetch(key, key))
+              else
+                #puts "##################### #{locale} #{entry.fields(locale)}"
+                entry.fields(locale).each do |key, value|
+                  key = key[0,key.length] #remove ':' before keys
+                  #puts "##################### #{locale} #{key}"
+                  if content_type_config['filename'] != nil && content_type_config['filename'] != '' && key == content_type_config['filename']
+                    filename = value
+                  end
+                  if key == content_type_config['content']
+                    content = value
+                  else
+                    fields[key] = process_field(entry, content_type_config.fetch(key, key),locale,config)
+                    #puts "##################### field  #{key} #{fields[key]} "
+                  end
                 end
               end
+              #puts "##################### fields  #{locale} #{fields} "
 
               # If no filename field is found, the entry id is used
-             
-                filename = "#{entry.id}.#{locale}" if filename == ''
+              if filename == '' && entry.fields[content_type_config['filename'].to_sym] != nil
+                filename = "#{entry.fields[content_type_config['filename'].to_sym]}.#{locale}" 
+              elsif filename == ''
+                filename = "#{entry.id}.#{locale}" 
+              else
+                filename = "#{filename}.#{locale}"
+              end
 
               # Path to content-file
               fullpath = "#{section_content_dir}/#{filename}.md"
